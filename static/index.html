@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Manager</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <script src="index.js"></script>
+  </head>
+
+  <body>
+    <div id="sys-info">
+      <h3>System Information</h3>
+
+      <table id="info-table">
+        <tr>
+          <td>CPU Load Avg:</td>
+          <td id="cpu-load-info"></td>
+        </tr>
+        <tr>
+          <td>Uptime:</td>
+          <td id="uptime-info"></td>
+        </tr>
+        <tr>
+          <td>CPU Temp:</td>
+          <td id="cpu-temp-info"></td>
+        </tr>
+      </table>
+
+      <form action="/" method="get">
+        <input name="sys-cmd" type="submit" value="Reboot" />
+        <input name="sys-cmd" type="submit" value="Shutdown" />
+      </form>
+    </div>
+
+    <div id="commands">
+      <form action="/" method="get">
+        <label for="run-cmd">Run Command:</label>
+        <input type="text" name="run-cmd" id="run-cmd" />
+        <input type="submit" value="Run" />
+        <br />
+      </form>
+
+      <form action="/" method="get">
+        <label for="kill-cmd">Kill Command:</label>
+        <input type="text" name="kill-cmd" id="kill-cmd" />
+        <input type="submit" value="Kill" />
+        <br />
+      </form>
+    </div>
+
+    <div id="programs">
+      <table id="program-table">
+        <tr>
+          <th>Command</th>
+          <th>Current CPU</th>
+          <th>Allowed CPU</th>
+        </tr>
+      </table>
+    </div>
+
+    <div id="settings">
+      <form action="/" method="post">
+        <input type="checkbox" name="" id="" />
+        <label for="sec-set">Update page every:</label>
+        <input type="text" name="sec-set" id="sec-set" />
+        <label>second(s)</label>
+        <br />
+
+        <input type="checkbox" name="" id="" />
+        <label for="util-set">Log if CPU util. is higher than:</label>
+        <input type="text" name="util-set" id="util-set" />
+        <label>%</label>
+        <br />
+
+        <input type="checkbox" name="" id="" />
+        <label for="temp-set">Log if CPU temp. is higher than:</label>
+        <input type="text" name="temp-set" id="temp-set" />
+        <label>C</label>
+        <br />
+
+        <input type="submit" value="Apply" />
+      </form>
+    </div>
+
+    <div id="logs"></div>
+  </body>
+</html>
