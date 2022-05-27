@@ -1,12 +1,19 @@
 #ifndef HANDLES_H
 #define HANDLES_H
 
-typedef void (*handleFunc)(int fd, void *args);
+#include <pthread.h>
 
-void indexHandle(int fd, void *args);
-void styleHandle(int fd, void *args);
-void jsHandle(int fd, void *args);
-void numberHandle(int fd, void *args);
+typedef void (*HandleFunc)(int fd, char *args);
+
+void indexHandle(int fd, char *args);
+void styleHandle(int fd, char *args);
+void jsHandle(int fd, char *args);
+void infoHandle(int fd, char *args);
+void postHandle(int fd, char *args);
+
 void notFoundHandle(int fd);
+void errorHandle(int fd);
+
+extern pthread_mutex_t lock;
 
 #endif

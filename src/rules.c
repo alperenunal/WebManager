@@ -3,92 +3,63 @@
 #include "http.h"
 #include "handles.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define numberOfRules (sizeof(rules) / sizeof(Rule))
+#define arraySize(arr) (int)(sizeof(arr) / sizeof((arr)[0]))
 
-struct Rule {
-    Method method;
-    char *url;
-    handleFunc handle;
+typedef struct {
+	Method method;
+	char *url;
+	HandleFunc handle;
+} Rule;
+
+static const Rule rules[] = {
+	{.method = GET, .url = "/", .handle = indexHandle},
+	{.method = POST, .url = "/", .handle = postHandle},
+	{.method = GET, .url = "/info", .handle = infoHandle},
+	{.method = GET, .url = "/index.js", .handle = jsHandle},
+	{.method = GET, .url = "/style.css", .handle = styleHandle},
 };
 
-static void freeRule(Rule *rule) {
-    if (rule == NULL) {
-        return;
-    }
+static void callHandle(Rule rule, int fd, char *arg) {
+	Method method = rule.method;
+	const char *url = rule.url;
 
-    free(rule->url);
-    free(rule);
+	for (int i = 0; i < arraySize(rules); ++i) {
+		Rule r = rules[i];
+		if (method == r.method && !strcmp(url, r.url)) {
+			r.handle(fd, arg);
+			return;
+		}
+	}
+
+	notFoundHandle(fd);
 }
 
-const Rule rules[] = {
-    {.method = GET, .url = "/", .handle = indexHandle},
-    {.method = GET, .url = "/style.css", .handle = styleHandle},
-    {.method = GET, .url = "/index.js", .handle = jsHandle},
-    {.method = GET, .url = "/number", .handle = numberHandle},
-};
+void sendResponse(int fd, char *request) {
+	Rule rule;
+	char *method = NULL, *url = NULL, *arg = NULL;
+	char *rest = NULL;
 
-Rule *parseRule(const char *request) {
-    char *method = NULL;
-    char *url = NULL;
+	method = strtok_r(request, " ", &rest);
+	url = strtok_r(NULL, " ", &rest);
 
-    for (int i = 0, j = 0; request[i]; ++i, ++j) {
-        if (request[i] == ' ') {
-            if (!method) {
-                method = malloc(j + 1);
-                strncpy(method, request, j);
-                method[j] = '\0';
-                j = -1;
-            } else if (!url) {
-                url = malloc(j + 1);
-                strncpy(url, request + i - j, j);
-                url[j] = '\0';
-                break;
-            }
-        }
-    }
+	if (!strcmp(method, "GET")) {
+		rule.method = GET;
+	} else if (!strcmp(method, "POST")) {
+		rule.method = POST;
+		while (*rest) {
+			arg = strtok_r(NULL, "\r\n", &rest);
+		}
+	} else {
+		notFoundHandle(fd);
+		return;
+	}
 
-    Rule *rule = malloc(sizeof(*rule));
+	rule.url = url;
+	rule.handle = NULL;
 
-    if (!strcmp(method, "GET")) {
-        rule->method = GET;
-        free(method);
-    } else if (!strcmp(method, "POST")) {
-        rule->method = POST;
-        free(method);
-    } else {
-        free(method);
-        free(url);
-        free(rule);
-        return NULL;
-    }
-
-    rule->url = url;
-    rule->handle = NULL;
-
-    return rule;
-}
-
-void callHandle(Rule *rule, int fd, void *args) {
-    if (rule == NULL) {
-        notFoundHandle(fd);
-        return;
-    }
-
-    Method method = rule->method;
-    const char *url = rule->url;
-
-    for (size_t i = 0; i < numberOfRules; ++i) {
-        Rule r = rules[i];
-        if (method == r.method && !strcmp(url, r.url)) {
-            r.handle(fd, args);
-            freeRule(rule);
-            return;
-        }
-    }
-
-    notFoundHandle(fd);
-    freeRule(rule);
+	callHandle(rule, fd, arg);
 }

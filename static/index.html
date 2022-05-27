@@ -10,80 +10,100 @@
   </head>
 
   <body>
-    <div id="sys-info">
+    <div class="box" id="sys-info">
       <h3>System Information</h3>
 
       <table id="info-table">
         <tr>
-          <td>CPU Load Avg:</td>
-          <td id="cpu-load-info"></td>
-        </tr>
-        <tr>
           <td>Uptime:</td>
-          <td id="uptime-info"></td>
+          <td id="uptime"></td>
         </tr>
         <tr>
           <td>CPU Temp:</td>
-          <td id="cpu-temp-info"></td>
+          <td id="cpu-temp"></td>
+        </tr>
+        <tr>
+          <td>CPU Load Avg:</td>
+          <td id="load-avg"></td>
+        </tr>
+        <tr>
+          <td>CPU Loads:</td>
+          <td id="cpu-loads"></td>
         </tr>
       </table>
 
-      <form action="/" method="get">
-        <input name="sys-cmd" type="submit" value="Reboot" />
-        <input name="sys-cmd" type="submit" value="Shutdown" />
+      <form action="/" method="post">
+        <button name="sys-cmd" value="s" type="submit">Shutdown</button>
+        <button name="sys-cmd" value="r" type="submit">Reboot</button>
+        <button name="sys-cmd" value="c" type="submit">Cancel</button>
       </form>
     </div>
 
-    <div id="commands">
-      <form action="/" method="get">
+    <div class="box" id="commands">
+      <form action="/" method="post">
         <label for="run-cmd">Run Command:</label>
         <input type="text" name="run-cmd" id="run-cmd" />
-        <input type="submit" value="Run" />
+        <button type="submit">Run</button>
         <br />
       </form>
 
-      <form action="/" method="get">
+      <form action="/" method="post">
         <label for="kill-cmd">Kill Command:</label>
         <input type="text" name="kill-cmd" id="kill-cmd" />
-        <input type="submit" value="Kill" />
+        <button type="submit">Kill</button>
         <br />
       </form>
     </div>
 
-    <div id="programs">
+    <div class="box" id="programs">
+      <h3>Programs</h3>
       <table id="program-table">
         <tr>
           <th>Command</th>
-          <th>Current CPU</th>
+          <th>Process ID</th>
           <th>Allowed CPU</th>
         </tr>
       </table>
     </div>
 
-    <div id="settings">
+    <div class="box" id="settings">
+      <h3>Page Settings</h3>
+
       <form action="/" method="post">
-        <input type="checkbox" name="" id="" />
         <label for="sec-set">Update page every:</label>
         <input type="text" name="sec-set" id="sec-set" />
         <label>second(s)</label>
-        <br />
+        <button type="submit">Change</button>
+      </form>
 
-        <input type="checkbox" name="" id="" />
+      <form action="/" method="post">
         <label for="util-set">Log if CPU util. is higher than:</label>
         <input type="text" name="util-set" id="util-set" />
         <label>%</label>
-        <br />
+        <button type="submit">Change</button>
+      </form>
 
-        <input type="checkbox" name="" id="" />
+      <form action="/" method="post">
         <label for="temp-set">Log if CPU temp. is higher than:</label>
         <input type="text" name="temp-set" id="temp-set" />
         <label>C</label>
-        <br />
+        <button type="submit">Change</button>
+      </form>
 
-        <input type="submit" value="Apply" />
+      <form action="/" method="post">
+        <label for="entry-set">Display last: </label>
+        <input type="text" name="entry-set" id="entry-set" />
+        <label>entries</label>
+        <button type="submit">Change</button>
       </form>
     </div>
 
-    <div id="logs"></div>
+    <div class="box" id="logs">
+      <h3>Logs</h3>
+      <form action="/" method="post">
+        <button name="clear-logs" type="submit">Clear Logs</button>
+      </form>
+      <div id="log"></div>
+    </div>
   </body>
 </html>

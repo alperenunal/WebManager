@@ -1,9 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-typedef struct Server Server;
-
-void startServer(void);
+void startServer(int port);
 void stopServer(int status);
 void listenAndServe(int n);
 

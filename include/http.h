@@ -5,6 +5,7 @@
 
 #define HTTP_OK "HTTP/1.1 200 OK" CRLF
 #define HTTP_NF "HTTP/1.1 404 Not Found" CRLF
+#define HTTP_IE "HTTP/1.1 500 Internal Error" CRLF
 
 #define CT_HTML "Content-Type: text/html; charset=utf-8" CRLF
 #define CT_CSS "Content-Type: text/css; charset=utf-8" CRLF

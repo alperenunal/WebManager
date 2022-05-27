@@ -1,17 +1,18 @@
 CC = gcc
 Wflags = -Wall -Wextra -Wpedantic
-defines = 
+defines = -D_GNU_SOURCE
 cflags = -I include/
 ldflags = 
 libs = -pthread
+files = src/main.c src/server.c src/rules.c src/handles.c src/cpu.c src/process.c
 
-all: build
+all: build run clean
 
 build:
-	gcc -O3 -Wall -Wextra -pedantic -I include/ src/handles.c src/rules.c src/server.c src/main.c -lpthread -o webmanager
+	$(CC) $(defines) $(Wflags) $(cflags) $(ldflags) $(files) $(libs) -o webmanager
 
 debug:
-	gcc -g -Wall -Wextra -pedantic -I include/ src/rules.c src/server.c src/main.c -lpthread -o webmanager
+	$(CC) $(defines) -g $(Wflags) $(cflags) $(ldflags) $(files) $(libs)
 
 run:
 	./webmanager
