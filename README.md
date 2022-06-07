@@ -7,11 +7,13 @@ GET /index.js -> index.js
 GET /info -> JSON
 
     {
-        "uptime": string,
-        "temp": number,
+        "uptime": ,
+        "temp": ,
         "load-avg": ,
         "loads": ,
-        "process": ,
+        "sec": ,
+        "entry": ,
+        "procs": ,
         "logs":
     }
 

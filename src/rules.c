@@ -21,6 +21,7 @@ static const Rule rules[] = {
 	{.method = GET, .url = "/info", .handle = infoHandle},
 	{.method = GET, .url = "/index.js", .handle = jsHandle},
 	{.method = GET, .url = "/style.css", .handle = styleHandle},
+	{.method = POST, .url = "/exit", .handle = exitHandle},
 };
 
 static void callHandle(Rule rule, int fd, char *arg) {

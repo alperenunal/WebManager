@@ -10,6 +10,7 @@ void styleHandle(int fd, char *args);
 void jsHandle(int fd, char *args);
 void infoHandle(int fd, char *args);
 void postHandle(int fd, char *args);
+void exitHandle(int fd, char *args);
 
 void notFoundHandle(int fd);
 void errorHandle(int fd);

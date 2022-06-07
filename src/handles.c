@@ -121,9 +121,12 @@ void infoHandle(int fd, char *args) {
 	(void)args;
 
 	long uptime;
+	double temp;
 	double load1, load5, load15;
 	int ncpu = get_nprocs();
 	double usage[ncpu];
+
+	temp = getTemp();
 
 	if (!getCPUUsage(ncpu, usage) || !getUptime(&uptime) ||
 		!getAvgLoad(&load1, &load5, &load15)) {
@@ -138,30 +141,53 @@ void infoHandle(int fd, char *args) {
 		return;
 	}
 
-	dprintf(fd, HTTP_OK CT_TXT CRLF);
+	dprintf(fd, HTTP_OK CT_JSON CRLF);
 
-	dprintf(fd, "uptime=%02d:%02d:%02d\n", uptm->tm_hour, uptm->tm_min,
+	dprintf(fd, "{");
+
+	dprintf(fd, "\"uptime\":\"%02d:%02d:%02d\",", uptm->tm_hour, uptm->tm_min,
 			uptm->tm_sec);
 
-	dprintf(fd, "loadavg=%.2lf %.2lf %.2lf\n", load1, load5, load15);
+	dprintf(fd, "\"temp\":%.1lf,", temp);
 
-	dprintf(fd, "loads=");
+	if (temp > settings.cpuTemp) {
+		writeLog("CPU Temperature is high: %.1lf\n", temp);
+	}
+
+	dprintf(fd, "\"loadavg\":[%.2lf, %.2lf, %.2lf],", load1, load5, load15);
+
+	dprintf(fd, "\"loads\":[");
 	for (int i = 0; i < ncpu; ++i) {
-		dprintf(fd, "%.1lf ", usage[i]);
+		if (i == ncpu - 1) {
+			dprintf(fd, "%.1lf", usage[i]);
+			break;
+		}
+
+		dprintf(fd, "%.1lf,", usage[i]);
 
 		if (usage[i] > settings.cpuUtil) {
 			writeLog("CPU#%d usage is high: %.1lf\n", i + 1, usage[i]);
 		}
 	}
-	dprintf(fd, "\n");
+	dprintf(fd, "],");
 
-	dprintf(fd, "sec=%d\n", settings.refSec);
+	dprintf(fd, "\"sec\":%d,", settings.refSec);
 
+	dprintf(fd, "\"entry\":%d,", settings.entry);
+
+	dprintf(fd, "\"procs\":[");
 	for (; procList->index < procList->len; procList->index++) {
 		Process *proc = procList->procs[procList->index];
-		dprintf(fd, "proc=%s %d %d\n", proc->command, proc->pid,
+
+		if (procList->index == procList->len - 1) {
+			dprintf(fd, "[\"%s\", %d, %d]", proc->command, proc->pid,
+					CPU_COUNT(&proc->affinity));
+			break;
+		}
+		dprintf(fd, "[\"%s\", %d, %d],", proc->command, proc->pid,
 				CPU_COUNT(&proc->affinity));
 	}
+	dprintf(fd, "],");
 
 	FILE *file;
 	if ((file = fopen("log.txt", "r")) == NULL) {
@@ -170,9 +196,17 @@ void infoHandle(int fd, char *args) {
 	}
 
 	char logLine[1024] = {0};
-	while (fgets(logLine, sizeof(logLine), file)) {
-		dprintf(fd, "log=%s", logLine);
+
+	dprintf(fd, "\"logs\":[");
+	for (int i = 0; fgets(logLine, sizeof(logLine), file); ++i) {
+		if (i > 0) {
+			dprintf(fd, ",");
+		}
+		dprintf(fd, "\"%.*s\"", (int)strlen(logLine) - 1, logLine);
 	}
+	dprintf(fd, "]");
+
+	dprintf(fd, "}");
 }
 
 static int getCommand(char *cmd) {
@@ -188,8 +222,10 @@ static int getCommand(char *cmd) {
 		return 5;
 	} else if (!strcmp(cmd, "temp-set")) {
 		return 6;
-	} else if (!strcmp(cmd, "clear-logs")) {
+	} else if (!strcmp(cmd, "entry-set")) {
 		return 7;
+	} else if (!strcmp(cmd, "clear-logs")) {
+		return 8;
 	}
 	return 0;
 }
@@ -198,12 +234,15 @@ static void sysCmd(int fd, char *cmd) {
 	switch (*cmd) {
 	case 's':
 		system("shutdown -h");
+		writeLog("Shutdown called\n");
 		break;
 	case 'r':
 		system("shutdown -r");
+		writeLog("Reboot called\n");
 		break;
 	case 'c':
 		system("shutdown -c");
+		writeLog("Shutdown/Reboot cancelled\n");
 		break;
 	default:
 		notFoundHandle(fd);
@@ -234,7 +273,7 @@ static void runCmd(int fd, char *cmd) {
 		sched_getaffinity(cpi, sizeof(cpu), &cpu);
 		proc = initProc(strdup(args[0]), cpi, cpu);
 		addProcList(procList, proc);
-		writeLog("Process %s with id %d started\n", args[0], cpi);
+		writeLog("Process %s with ID %d started\n", args[0], cpi);
 		break;
 	case 0:
 		execvp(args[0], args);
@@ -247,9 +286,6 @@ static void runCmd(int fd, char *cmd) {
 }
 
 static void killCmd(int fd, char *cmd) {
-	(void)fd;
-	(void)cmd;
-
 	int pid = atoi(cmd);
 	if (pid == 0) {
 		for (int i = 0; i < procList->len; ++i) {
@@ -310,6 +346,16 @@ static void tempSet(int fd, char *val) {
 	indexHandle(fd, NULL);
 }
 
+static void entrySet(int fd, char *val) {
+	int entry = atoi(val);
+
+	pthread_mutex_lock(&lock);
+	settings.entry = (entry > 0) ? entry : 5;
+	pthread_mutex_unlock(&lock);
+
+	indexHandle(fd, NULL);
+}
+
 static void clearLog(int fd) {
 	FILE *file = fopen("log.txt", "w");
 
@@ -350,6 +396,9 @@ void postHandle(int fd, char *args) {
 		tempSet(fd, value);
 		break;
 	case 7:
+		entrySet(fd, value);
+		break;
+	case 8:
 		clearLog(fd);
 		break;
 	}
@@ -395,4 +444,11 @@ void errorHandle(int fd) {
 
 close_file:
 	close(file);
+}
+
+void exitHandle(int fd, char *args) {
+	(void)fd;
+	(void)args;
+	freeProcList(procList);
+	exit(EXIT_SUCCESS);
 }

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <unistd.h>
 #include <sensors/sensors.h>
@@ -56,7 +57,7 @@ int getCPUUsage(int ncpu, double *usage) {
 		return 0;
 	}
 
-	for (int i = -1; i <= ncpu; ++i) {
+	for (int i = -1; i < ncpu; ++i) {
 		char buffer[BUFFER_SIZE] = {0};
 
 		if (i == -1) {
@@ -79,7 +80,7 @@ int getCPUUsage(int ncpu, double *usage) {
 	fseek(file, 0, SEEK_SET);
 	sleep(1);
 
-	for (int i = -1; i <= ncpu; ++i) {
+	for (int i = -1; i < ncpu; ++i) {
 		char buffer[BUFFER_SIZE] = {0};
 
 		if (i == -1) {
@@ -119,4 +120,31 @@ int getCPUUsage(int ncpu, double *usage) {
 
 	fclose(file);
 	return 1;
+}
+
+double getTemp(void) {
+	if (sensors_init(NULL)) {
+		return -1;
+	}
+
+	double temp = 0.0;
+	int n = 0;
+	const sensors_chip_name *chip;
+
+	while ((chip = sensors_get_detected_chips(NULL, &n))) {
+		if (!strcmp("coretemp", chip->prefix)) {
+			int x = 0;
+			const sensors_feature *feature = sensors_get_features(chip, &x);
+
+			const sensors_subfeature *sub = sensors_get_subfeature(
+				chip, feature, SENSORS_SUBFEATURE_TEMP_INPUT);
+
+			sensors_get_value(chip, sub->number, &temp);
+			break;
+		}
+	}
+
+	sensors_cleanup();
+
+	return temp;
 }

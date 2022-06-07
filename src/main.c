@@ -9,7 +9,7 @@
 #define HELP                                                                   \
 	"Usage:\twebmanager [-h | -p <port>]\n"                                    \
 	"\t-h: prints this message and exits\n"                                    \
-	"\t-p: specify the port number (default is 8000)\n"
+	"\t-p: specifies the port number (default is 8000)\n"
 
 int main(int argc, char const *argv[]) {
 	int opt;
@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
 			return 0;
 		case 'p':
 			port = atoi(optarg);
-			port = port ? port : 8000;
+			port = (port >= 0 && port <= 0xFFFF) ? port : 8000;
 			break;
 		default:
 			fprintf(stderr, HELP);
