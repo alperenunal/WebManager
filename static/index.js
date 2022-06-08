@@ -19,6 +19,9 @@ const pageLoad = () => {
     refreshSec = (sec ? sec : sec + 1) * 1000;
 
     let table = document.getElementById("program-table");
+    table.innerHTML =
+      "<tr><th>Command</th><th>Process ID</th><th>Allowed CPU</th></tr>";
+
     for (const proc of resp.procs) {
       let row = table.insertRow(-1);
 

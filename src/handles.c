@@ -150,7 +150,7 @@ void infoHandle(int fd, char *args) {
 
 	dprintf(fd, "\"temp\":%.1lf,", temp);
 
-	if (temp > settings.cpuTemp) {
+	if (temp >= settings.cpuTemp) {
 		writeLog("CPU Temperature is high: %.1lf\n", temp);
 	}
 
@@ -165,7 +165,7 @@ void infoHandle(int fd, char *args) {
 
 		dprintf(fd, "%.1lf,", usage[i]);
 
-		if (usage[i] > settings.cpuUtil) {
+		if (usage[i] >= settings.cpuUtil) {
 			writeLog("CPU#%d usage is high: %.1lf\n", i + 1, usage[i]);
 		}
 	}
@@ -176,10 +176,10 @@ void infoHandle(int fd, char *args) {
 	dprintf(fd, "\"entry\":%d,", settings.entry);
 
 	dprintf(fd, "\"procs\":[");
-	for (; procList->index < procList->len; procList->index++) {
-		Process *proc = procList->procs[procList->index];
+	for (int i = 0; i < procList->len; i++) {
+		Process *proc = procList->procs[i];
 
-		if (procList->index == procList->len - 1) {
+		if (i + 1 == procList->len) {
 			dprintf(fd, "[\"%s\", %d, %d]", proc->command, proc->pid,
 					CPU_COUNT(&proc->affinity));
 			break;
@@ -267,6 +267,7 @@ static void runCmd(int fd, char *cmd) {
 	Process *proc;
 	cpu_set_t cpu;
 	pid_t cpi = fork();
+	int res;
 
 	switch (cpi) {
 	default:
@@ -276,8 +277,9 @@ static void runCmd(int fd, char *cmd) {
 		writeLog("Process %s with ID %d started\n", args[0], cpi);
 		break;
 	case 0:
-		execvp(args[0], args);
-		break;
+		res = execvp(args[0], args);
+		writeLog("Could not run %s, exited with code %d\n", args[0], res);
+		return;
 	case -1:
 		break;
 	}
@@ -340,7 +342,7 @@ static void tempSet(int fd, char *val) {
 	int temp = atoi(val);
 
 	pthread_mutex_lock(&lock);
-	settings.cpuUtil = (temp > 0) ? temp : 50;
+	settings.cpuTemp = (temp > 0) ? temp : 50;
 	pthread_mutex_unlock(&lock);
 
 	indexHandle(fd, NULL);

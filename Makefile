@@ -21,8 +21,7 @@ clean:
 	rm webmanager
 
 install-sensors:
-	sudo apt install lm-sensors
-	sudo apt install libsensors4-dev
+	sudo apt install lm-sensors libsensors4-dev
 
 detect-sensors:
 	sudo sensors-detect

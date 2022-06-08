@@ -44,26 +44,18 @@
         <label for="run-cmd">Run Command:</label>
         <input type="text" name="run-cmd" id="run-cmd" />
         <button type="submit">Run</button>
-        <br />
       </form>
 
       <form action="/" method="post">
         <label for="kill-cmd">Kill Command:</label>
         <input type="text" name="kill-cmd" id="kill-cmd" />
         <button type="submit">Kill</button>
-        <br />
       </form>
     </div>
 
     <div class="box" id="programs">
       <h3>Programs</h3>
-      <table id="program-table">
-        <tr>
-          <th>Command</th>
-          <th>Process ID</th>
-          <th>Allowed CPU</th>
-        </tr>
-      </table>
+      <table id="program-table"></table>
     </div>
 
     <div class="box" id="settings">
